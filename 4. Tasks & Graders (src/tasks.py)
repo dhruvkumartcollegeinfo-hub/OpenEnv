@@ -1,0 +1,66 @@
+
+Defines the Easy, Medium, and Hard task configurations and their deterministic graders (returning 0.0 to 1.0).
+
+Python
+from .env import SupportEnv
+
+# --- TASK CONFIGURATIONS ---
+TASKS = {
+    "easy": {
+        "max_steps": 5,
+        "tickets": [
+            {"id": "T1", "customer_message": "My screen is cracked and won't turn on."}
+        ]
+    },
+    "medium": {
+        "max_steps": 10,
+        "tickets": [
+            {"id": "T1", "customer_message": "Double charged on my last invoice."},
+            {"id": "T2", "customer_message": "How do I reset my password?"}
+        ]
+    },
+    "hard": {
+        "max_steps": 15,
+        "tickets": [
+            {"id": "T1", "customer_message": "I want a refund for my delayed order."},
+            {"id": "T2", "customer_message": "URGENT: I found an SQL injection on your login page!"},
+            {"id": "T3", "customer_message": "Internet keeps dropping every 5 mins."}
+        ]
+    }
+}
+
+# --- GRADERS ---
+def grade_easy(env: SupportEnv) -> float:
+    t1 = env.state.all_tickets[0]
+    if t1.status == "ROUTED" and t1.assigned_dept == "TECH_SUPPORT":
+        return 1.0
+    return 0.0
+
+def grade_medium(env: SupportEnv) -> float:
+    t1, t2 = env.state.all_tickets[0], env.state.all_tickets[1]
+    score = 0.0
+    if t1.status == "ROUTED" and t1.assigned_dept == "BILLING":
+        score += 0.5
+    if t2.status == "ROUTED" and t2.assigned_dept == "TECH_SUPPORT":
+        score += 0.5
+    return score
+
+def grade_hard(env: SupportEnv) -> float:
+    t1, t2, t3 = env.state.all_tickets
+    score = 0.0
+    # Refund routed correctly
+    if t1.status == "ROUTED" and t1.assigned_dept == "REFUNDS":
+        score += 0.33
+    # Critical security issue routed to security
+    if t2.status == "ROUTED" and t2.assigned_dept == "SECURITY":
+        score += 0.34
+    # Tech issue routed correctly
+    if t3.status == "ROUTED" and t3.assigned_dept == "TECH_SUPPORT":
+        score += 0.33
+    return min(1.0, score)
+
+GRADERS = {
+    "easy": grade_easy,
+    "medium": grade_medium,
+    "hard": grade_hard
+}
