@@ -1,0 +1,76 @@
+This script strictly adheres to the requested log formatting ([START], [STEP], [END]) and dynamically utilizes the specified environment variables via the OpenAI Python client.
+
+Python
+import os
+import json
+from openai import OpenAI
+from src.env import SupportEnv
+from src.tasks import TASKS, GRADERS
+
+# Mandatory Env Vars
+API_BASE_URL = os.getenv("API_BASE_URL", "https://api.openai.com/v1")
+MODEL_NAME = os.getenv("MODEL_NAME", "gpt-4-turbo")
+HF_TOKEN = os.getenv("HF_TOKEN") # Used as API key for OpenAI client here
+
+client = OpenAI(
+    api_key=HF_TOKEN,
+    base_url=API_BASE_URL
+)
+
+def run_inference(task_name: str):
+    env = SupportEnv()
+    obs = env.reset(TASKS[task_name])
+    
+    print(f"[START] Task: {task_name}")
+    print(f"[START] Initial Observation: {obs.model_dump_json()}")
+    
+    done = False
+    step_count = 0
+    
+    while not done:
+        step_count += 1
+        
+        # Build prompt for the LLM
+        prompt = f"""
+        You are a Customer Support Agent. Review the observation and choose an action.
+        Observation: {obs.model_dump_json()}
+        Valid Departments: BILLING, TECH_SUPPORT, REFUNDS, SECURITY
+        Valid Templates: REFUND_PROCESSED, ESCALATED_TO_TECH, GENERIC_APOLOGY
+        Respond ONLY with a JSON object matching this schema:
+        {{"ticket_id": "str", "action_type": "ROUTE" or "REPLY_AND_CLOSE", "department": "str (optional)", "reply_template": "str (optional)"}}
+        """
+        
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
+        
+        try:
+            action_dict = json.loads(response.choices[0].message.content)
+            from src.models import Action
+            action = Action(**action_dict)
+            
+            print(f"[STEP] {step_count} Action: {action.model_dump_json()}")
+            
+            obs, reward, done, info = env.step(action)
+            
+            print(f"[STEP] {step_count} Observation: {obs.model_dump_json()}")
+            print(f"[STEP] {step_count} Reward: {reward}")
+            
+        except Exception as e:
+            print(f"[STEP] {step_count} Error parsing LLM output: {e}")
+            break # End episode on invalid format
+            
+    final_score = GRADERS[task_name](env)
+    print(f"[END] Task: {task_name} completed.")
+    print(f"[END] Final Score: {final_score}")
+    print("-" * 40)
+
+if __name__ == "__main__":
+    if not HF_TOKEN:
+        print("Error: HF_TOKEN environment variable not set.")
+        exit(1)
+        
+    for task in ["easy", "medium", "hard"]:
+        run_inference(task)
