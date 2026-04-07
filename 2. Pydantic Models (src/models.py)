@@ -1,0 +1,28 @@
+Defines the strict Observation, Action, and State schemas required by OpenEnv.
+
+Python
+from pydantic import BaseModel, Field
+from typing import List, Optional, Literal
+
+class Ticket(BaseModel):
+    id: str
+    customer_message: str
+    status: Literal["OPEN", "ROUTED", "CLOSED"] = "OPEN"
+    assigned_dept: Optional[str] = None
+    agent_reply: Optional[str] = None
+
+class Observation(BaseModel):
+    open_tickets: List[Ticket]
+    last_action_feedback: str
+    current_score: float
+
+class Action(BaseModel):
+    ticket_id: str
+    action_type: Literal["ROUTE", "REPLY_AND_CLOSE"]
+    department: Optional[Literal["BILLING", "TECH_SUPPORT", "REFUNDS", "SECURITY"]] = None
+    reply_template: Optional[Literal["REFUND_PROCESSED", "ESCALATED_TO_TECH", "GENERIC_APOLOGY"]] = None
+
+class EnvState(BaseModel):
+    all_tickets: List[Ticket]
+    steps_taken: int
+    max_steps: int
