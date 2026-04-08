@@ -1,4 +1,4 @@
-name: "customer-support-triage"
+name: "trading-agent-env"
 version: "1.0.0"
-description: "An environment where an agent acts as a Level 1 Customer Support agent, routing and resolving tickets."
-entrypoint: "src.env:SupportEnv"
+description: "An environment where an agent acts as a quantitative trader, managing a portfolio of assets to maximize return on investment."
+entrypoint: "src.env:TradingEnv"
