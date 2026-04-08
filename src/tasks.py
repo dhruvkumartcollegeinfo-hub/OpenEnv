@@ -53,3 +53,20 @@ GRADERS = {
     "medium": grade_medium,
     "hard": grade_hard
 }
+# At the end of src/tasks.py
+def easy_grader(env):
+    return 1.0 if env.state.portfolio.total_value > env.initial_cash else 0.0
+
+def medium_grader(env):
+    # Requires 5% profit for a perfect score
+    return 1.0 if env.state.portfolio.total_value > (env.initial_cash * 1.05) else 0.0
+
+def hard_grader(env):
+    # Requires 10% profit
+    return 1.0 if env.state.portfolio.total_value > (env.initial_cash * 1.10) else 0.0
+
+GRADERS = {
+    "easy": easy_grader,
+    "medium": medium_grader,
+    "hard": hard_grader
+}
