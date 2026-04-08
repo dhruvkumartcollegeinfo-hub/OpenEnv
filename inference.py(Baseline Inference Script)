@@ -1,6 +1,3 @@
-This script strictly adheres to the requested log formatting ([START], [STEP], [END]) and dynamically utilizes the specified environment variables via the OpenAI Python client.
-
-Python
 import os
 import json
 from openai import OpenAI
@@ -72,5 +69,7 @@ if __name__ == "__main__":
         print("Error: HF_TOKEN environment variable not set.")
         exit(1)
         
+    for task in ["easy", "medium", "hard"]:
+        run_inference(task)
     for task in ["easy", "medium", "hard"]:
         run_inference(task)
