@@ -1,8 +1,0 @@
-project_root/
-├── src/
-│   ├── models.py      # Database schemas and ORM definitions
-│   ├── env.py         # Configuration and environment variables
-│   ├── tasks.py       # Background jobs or business logic
-│   └── __init__.py    # Makes src a Python package
-├── requirements.txt
-└── main.py            # Entry point for your application
