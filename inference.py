@@ -1,3 +1,4 @@
+from src.models import Action, Observation # Add this near 'from src.env import ...'
 import os
 import json
 from openai import OpenAI
@@ -19,30 +20,47 @@ def run_inference(task_name: str):
     
     done = False
   
-    while not done:
-        # ... (keep your prompt and client.chat.completions logic)
+   while not done:
+        prompt = f"""
+        You are a Quantitative Trading AI. Maximize your portfolio value.
+        Current Observation: {obs.model_dump_json()}
+        Respond ONLY with a JSON object: {{"action_type": "BUY"|"SELL"|"HOLD", "ticker": "str", "quantity": int}}
+        """
+        
+        # This part must be present for 'response' to exist!
+        response = client.chat.completions.create(
+            model=MODEL_NAME,
+            messages=[{"role": "user", "content": prompt}],
+            response_format={"type": "json_object"}
+        )
         
         try:
+            # Parse the AI's decision
             action_dict = json.loads(response.choices[0].message.content)
-            from src.models import Action
             action = Action(**action_dict)
             
-            # Execute step
+            # Execute step in the environment
             obs, reward, done, info = env.step(action)
             
-            # IMPROVED LOGGING: Use the feedback from the observation
+            # Standardized OpenEnv Logging
             print(f"[STEP] {obs.current_step} Action: {action.action_type} {action.ticker or ''}")
             print(f"[STEP] {obs.current_step} Feedback: {obs.last_action_feedback}")
             print(f"[STEP] {obs.current_step} Reward: {reward:.2f}")
             print(f"[STEP] {obs.current_step} Portfolio Value: {obs.portfolio.total_value:.2f}")
             
         except Exception as e:
-            print(f"[STEP] {obs.current_step} Error: {e}")
+            print(f"[STEP] {obs.current_step} Error parsing AI response: {e}")
             break
             
-    final_score = GRADERS[task_name](env)
-    print(f"[END] Task: {task_name} completed.")
-    print(f"[END] Final Score: {final_score:.2f}")
+  # This replaces the old final_score line
+    grader_func = GRADERS.get(task_name)
+    if grader_func:
+        final_score = grader_func(env)
+        print(f"[END] Task: {task_name} completed.")
+        print(f"[END] Final Score: {final_score:.2f}")
+    else:
+        print(f"[ERROR] No grader found for {task_name}")
+
     print("-" * 40)
 
 if __name__ == "__main__":
@@ -52,3 +70,20 @@ if __name__ == "__main__":
         
     for task in ["easy", "medium", "hard"]:
         run_inference(task)
+def easy_grader(env):
+    # Score is 1.0 if the agent made any profit, 0.0 otherwise
+    return 1.0 if env.state.portfolio.total_value > env.initial_cash else 0.0
+
+def medium_grader(env):
+    # Requires a 5% profit to get a full 1.0 score
+    return 1.0 if env.state.portfolio.total_value > (env.initial_cash * 1.05) else 0.0
+
+def hard_grader(env):
+    # Requires 10% profit
+    return 1.0 if env.state.portfolio.total_value > (env.initial_cash * 1.10) else 0.0
+
+GRADERS = {
+    "easy": easy_grader,
+    "medium": medium_grader,
+    "hard": hard_grader
+}
