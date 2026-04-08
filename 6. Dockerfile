@@ -1,6 +1,4 @@
 Sets up the container for deployment to Hugging Face Spaces.
-
-Dockerfile
 FROM python:3.10-slim
 
 WORKDIR /app
