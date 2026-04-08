@@ -1,12 +1,8 @@
-.
-├── openenv.yaml
-├── Dockerfile
+project_root/
+├── src/
+│   ├── models.py      # Database schemas and ORM definitions
+│   ├── env.py         # Configuration and environment variables
+│   ├── tasks.py       # Background jobs or business logic
+│   └── __init__.py    # Makes src a Python package
 ├── requirements.txt
-├── README.md
-├── app.py
-├── inference.py
-└── src/
-    ├── __init__.py
-    ├── models.py
-    ├── env.py
-    └── tasks.py
+└── main.py            # Entry point for your application
