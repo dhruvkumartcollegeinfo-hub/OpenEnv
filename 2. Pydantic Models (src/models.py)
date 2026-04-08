@@ -1,6 +1,5 @@
 Defines the strict Observation, Action, and State schemas required by OpenEnv.
 
-Python
 from pydantic import BaseModel, Field
 from typing import List, Optional, Literal
 
