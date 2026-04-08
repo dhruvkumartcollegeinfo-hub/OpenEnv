@@ -1,5 +1,3 @@
-
-
 # --- TASK CONFIGURATIONS ---
 TASKS = {
     "easy": { # Single asset, clear bull run. Just buy and hold.
