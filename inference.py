@@ -18,32 +18,23 @@ def run_inference(task_name: str):
     print(f"[START] Initial Observation: {obs.model_dump_json()}")
     
     done = False
-    
+  
     while not done:
-        prompt = f"""
-        You are a Quantitative Trading AI. Maximize your portfolio value.
-        Current Observation: {obs.model_dump_json()}
-        Determine your next trade. You can BUY, SELL, or HOLD. You must specify the ticker and quantity if buying or selling.
-        Respond ONLY with a JSON object matching this schema:
-        {{"action_type": "BUY" | "SELL" | "HOLD", "ticker": "str (optional)", "quantity": int (optional)}}
-        """
-        
-        response = client.chat.completions.create(
-            model=MODEL_NAME,
-            messages=[{"role": "user", "content": prompt}],
-            response_format={"type": "json_object"}
-        )
+        # ... (keep your prompt and client.chat.completions logic)
         
         try:
             action_dict = json.loads(response.choices[0].message.content)
             from src.models import Action
             action = Action(**action_dict)
             
-            print(f"[STEP] {obs.current_step} Action: {action.model_dump_json()}")
+            # Execute step
             obs, reward, done, info = env.step(action)
             
-            print(f"[STEP] {obs.current_step} Observation: {obs.model_dump_json()}")
+            # IMPROVED LOGGING: Use the feedback from the observation
+            print(f"[STEP] {obs.current_step} Action: {action.action_type} {action.ticker or ''}")
+            print(f"[STEP] {obs.current_step} Feedback: {obs.last_action_feedback}")
             print(f"[STEP] {obs.current_step} Reward: {reward:.2f}")
+            print(f"[STEP] {obs.current_step} Portfolio Value: {obs.portfolio.total_value:.2f}")
             
         except Exception as e:
             print(f"[STEP] {obs.current_step} Error: {e}")
