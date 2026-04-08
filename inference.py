@@ -50,7 +50,7 @@ def run_inference(task_name: str):
             print(f"[STEP] {obs.current_step} Error parsing AI response: {e}")
             break
             
-  # This replaces the old final_score line
+ # Final lines of run_inference function:
     grader_func = GRADERS.get(task_name)
     if grader_func:
         final_score = grader_func(env)
@@ -58,7 +58,6 @@ def run_inference(task_name: str):
         print(f"[END] Final Score: {final_score:.2f}")
     else:
         print(f"[ERROR] No grader found for {task_name}")
-
     print("-" * 40)
 
 if __name__ == "__main__":
