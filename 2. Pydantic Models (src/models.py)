@@ -1,27 +1,24 @@
-Defines the strict Observation, Action, and State schemas required by OpenEnv.
+from pydantic import BaseModel
+from typing import Dict, List, Optional, Literal
 
-from pydantic import BaseModel, Field
-from typing import List, Optional, Literal
-
-class Ticket(BaseModel):
-    id: str
-    customer_message: str
-    status: Literal["OPEN", "ROUTED", "CLOSED"] = "OPEN"
-    assigned_dept: Optional[str] = None
-    agent_reply: Optional[str] = None
+class Portfolio(BaseModel):
+    cash: float
+    holdings: Dict[str, int] # Ticker -> Quantity
+    total_value: float
 
 class Observation(BaseModel):
-    open_tickets: List[Ticket]
+    current_step: int
+    max_steps: int
+    portfolio: Portfolio
+    current_prices: Dict[str, float]
     last_action_feedback: str
-    current_score: float
 
 class Action(BaseModel):
-    ticket_id: str
-    action_type: Literal["ROUTE", "REPLY_AND_CLOSE"]
-    department: Optional[Literal["BILLING", "TECH_SUPPORT", "REFUNDS", "SECURITY"]] = None
-    reply_template: Optional[Literal["REFUND_PROCESSED", "ESCALATED_TO_TECH", "GENERIC_APOLOGY"]] = None
+    action_type: Literal["BUY", "SELL", "HOLD"]
+    ticker: Optional[str] = None
+    quantity: Optional[int] = None
 
 class EnvState(BaseModel):
-    all_tickets: List[Ticket]
-    steps_taken: int
-    max_steps: int
+    portfolio: Portfolio
+    step_index: int
+    price_history: List[Dict[str, float]]
