@@ -39,14 +39,12 @@ def run_inference(task_name: str):
             action_dict = json.loads(response.choices[0].message.content)
             action = Action(**action_dict)
             
-            # Execute step in the environment
+            ## Inside the while loop, replace your print statements with these:
             obs, reward, done, info = env.step(action)
             
-            # Standardized OpenEnv Logging
             print(f"[STEP] {obs.current_step} Action: {action.action_type} {action.ticker or ''}")
             print(f"[STEP] {obs.current_step} Feedback: {obs.last_action_feedback}")
             print(f"[STEP] {obs.current_step} Reward: {reward:.2f}")
-            print(f"[STEP] {obs.current_step} Portfolio Value: {obs.portfolio.total_value:.2f}")
             
         except Exception as e:
             print(f"[STEP] {obs.current_step} Error parsing AI response: {e}")
