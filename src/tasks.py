@@ -1,5 +1,4 @@
 
-from .env import TradingEnv
 
 # --- TASK CONFIGURATIONS ---
 TASKS = {
